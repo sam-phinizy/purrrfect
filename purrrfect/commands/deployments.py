@@ -15,7 +15,6 @@ import functools
 
 deployments_app = AsyncTyper()
 
-
 async def get_deployment(prompt_text: Optional[str] = None):
     deployments = await prefect_client.read_deployments()
 

@@ -17,6 +17,8 @@ typer = "^0.9.0"
 pygum = "^0.1.0"
 pyperclip = "^1.8.2"
 dateparser = "^1.1.8"
+krfzf-py = {git = "https://www.github.com/justfoolingaround/fzf.py"}
+sqlitedict = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
@@ -28,4 +30,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-purrrfect = "purrrfect.cli:main_app"
+purr = "purrrfect.cli:main_app"

@@ -3,7 +3,7 @@ import os
 from purrrfect.commands import CONFIG, PurrrfectConfigModel
 
 
-def generate_url(url_text: str, url: str,short_link: str = "🔗"):
+def generate_url(url_text: str, url: str, short_link: str = "🔗"):
     if CONFIG.short_link is True or (
         CONFIG.short_link is None and os.getenv("TERM_PROGRAM") == "iTerm.app"
     ):
