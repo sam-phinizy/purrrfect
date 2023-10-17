@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Black">
+    <option name="enabledOnReformat" value="true" />
+    <option name="enabledOnSave" value="true" />
+    <option name="pathToExecutable" value="$USER_HOME$/.pyenv/shims/black" />
+    <option name="sdkUUID" value="b2ac8748-24cc-472f-aac5-811eddb0d58a" />
+  </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (purrrfect)" project-jdk-type="Python SDK" />
 </project>

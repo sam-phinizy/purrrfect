@@ -3,7 +3,6 @@ import uuid
 from typing import Annotated, List, Optional, Protocol, Type
 
 import dateparser
-import fzf
 import pendulum
 import pygum
 import typer
@@ -67,8 +66,8 @@ class RichListPrinter(ListPrinterProtocol):
                 convert_time(flow_run.start_time),
                 convert_time(flow_run.end_time),
                 (
-                        pendulum.instance(flow_run.end_time)
-                        - pendulum.instance(flow_run.start_time)
+                    pendulum.instance(flow_run.end_time)
+                    - pendulum.instance(flow_run.start_time)
                 ).in_words(),
                 f"https://cloud.prefect.io/flow-run/{flow_run.id}",
                 ",".join(flow.tags),
@@ -85,15 +84,19 @@ class PlainListPrinter(Printer):
                 f"{flow_run.name} - {flow_run.state_name} - {convert_time(flow_run.start_time)}"
             )
 
+
 class STDOUTListPrinter(Printer):
     output_type = OutputEnum.STDOUT
 
     async def print(self, flow_runs: list[FlowRun]):
         for flow_run in flow_runs:
-            tmp_console = Console(no_color=True,force_terminal=True,force_jupyter=False)
+            tmp_console = Console(
+                no_color=True, force_terminal=True, force_jupyter=False
+            )
             console.print(
                 f"{flow_run.deployment_id} {flow_run.name} | {flow_run.state_name} | {convert_time(flow_run.start_time)}"
             )
+
 
 class JsonListPrinter(Printer):
     output_type = OutputEnum.JSON
@@ -161,7 +164,7 @@ def parse_time_string(time_string: str):
 
 
 def time_string_tuple_to_prefect_time_filter(
-        time_tuple, time_filter_class: Type[PrefectFilterBaseModel]
+    time_tuple, time_filter_class: Type[PrefectFilterBaseModel]
 ):
     operation, start_time, end_time = time_tuple
     if operation == "BEFORE":
@@ -181,7 +184,12 @@ def convert_time(prefect_time):
 
 
 def build_flow_run_fitler_args(
-        debug, start_time, name_like, names: list[str], deployment_id: uuid.UUID, no_deployments: bool
+    debug,
+    start_time,
+    name_like,
+    names: list[str],
+    deployment_id: uuid.UUID,
+    no_deployments: bool,
 ):
     flow_run_filters_args = {}
     if start_time is not None:
@@ -222,7 +230,7 @@ def build_flow_run_fitler_args(
 
 
 async def print_flow_runs(
-        flow_runs: List[FlowRun], output_type: OutputEnum, printers: list[Printer]
+    flow_runs: List[FlowRun], output_type: OutputEnum, printers: list[Printer]
 ):
     await {printer.output_type: printer() for printer in printers}[output_type].print(
         flow_runs
@@ -230,14 +238,14 @@ async def print_flow_runs(
 
 
 async def list_flow_runs(
-        start_time,
-        name_like,
-        names,
-        deployment_id: uuid.UUID,
-        no_deployments: bool,
-        debug,
-        output_type,
-        quiet,
+    start_time,
+    name_like,
+    names,
+    deployment_id: uuid.UUID | None,
+    no_deployments: bool,
+    debug,
+    output_type,
+    quiet,
 ):
     flow_run_filters_args = build_flow_run_fitler_args(
         debug, start_time, name_like, names, deployment_id, no_deployments
@@ -258,28 +266,35 @@ async def list_flow_runs(
     await print_flow_runs(
         flow_runs,
         output_type,
-        [RichListPrinter, PlainListPrinter, JsonListPrinter,STDOUTListPrinter, QuietListPrinter],
+        [
+            RichListPrinter,
+            PlainListPrinter,
+            JsonListPrinter,
+            STDOUTListPrinter,
+            QuietListPrinter,
+        ],
     )
 
 
 @flow_run_app.async_command("list")
 async def list_flow_runs_cmd(
-        start_time: Optional[str] = typer.Option(None, help="Start time to filter by"),
-        name_like: Optional[str] = typer.Option(None, help="Name to filter by"),
-        names: Annotated[
-            Optional[List[str]], typer.Option(help="FLow names to use")
-        ] = None,
-        deployment_id: uuid.UUID = typer.Option(
-            None,
-            help="Deployment ID to use. ",
-        ),
-        no_deployments: bool = typer.Option(False, help="Show only flow runs with no deployment"),
-        picker: bool = typer.Option(False, help="Use picker to select flow run"),
-        debug: bool = typer.Option(False, help="Print debug information"),
-        output_type: OutputEnum = typer.Option(default=OutputEnum.RICH),
-        quiet: bool = typer.Option(
-            default=False, help="Only print IDs. Shortcut for --output-type quiet"
-        ),
+    start_time: Optional[str] = typer.Option(None, help="Start time to filter by"),
+    name_like: Optional[str] = typer.Option(None, help="Name to filter by"),
+    names: Annotated[
+        Optional[List[str]], typer.Option(help="FLow names to use")
+    ] = None,
+    deployment_id: uuid.UUID = typer.Option(
+        None,
+        help="Deployment ID to use.",
+    ),
+    no_deployments: bool = typer.Option(
+        False, help="Show only flow runs with no deployment"
+    ),
+    debug: bool = typer.Option(False, help="Print debug information"),
+    output_type: OutputEnum = typer.Option(default=OutputEnum.RICH),
+    quiet: bool = typer.Option(
+        default=False, help="Only print IDs. Shortcut for --output-type quiet"
+    ),
 ):
     typer.echo(prefect_client.api_url)
 
@@ -288,37 +303,19 @@ async def list_flow_runs_cmd(
         raise typer.BadParameter("Cannot use both --names and --name-like")
 
     if deployment_id is not None and no_deployments:
-        raise typer.BadParameter("Cannot use both --deployment-id and --no-deployments.")
-
-    if picker:
-        with console.capture() as capture:
-            await list_flow_runs(
-                start_time=start_time,
-                name_like=name_like,
-                names=names,
-                deployment_id=deployment_id,
-                no_deployments=no_deployments,
-                debug=debug,
-                output_type=OutputEnum.STDOUT,
-                quiet=quiet,
-            )
-
-        choice = fzf.fzf_prompt(
-            capture.get().split("\n"),
-            multi=True,
-            reversed_layout=True       )
-        print(choice)
-    else:
-        return await list_flow_runs(
-            start_time=start_time,
-            name_like=name_like,
-            names=names,
-            deployment_id=deployment_id,
-            no_deployments=no_deployments,
-            debug=debug,
-            output_type=output_type,
-            quiet=quiet,
+        raise typer.BadParameter(
+            "Cannot use both --deployment-id and --no-deployments."
         )
+    return await list_flow_runs(
+        start_time=start_time,
+        name_like=name_like,
+        names=names,
+        deployment_id=deployment_id,
+        no_deployments=no_deployments,
+        debug=debug,
+        output_type=output_type,
+        quiet=quiet,
+    )
 
 
 if __name__ == "__main__":
