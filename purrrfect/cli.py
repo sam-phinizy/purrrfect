@@ -2,7 +2,7 @@ import typer
 
 from purrrfect.commands.config import config_app
 from purrrfect.commands.deployments import deployments_app
-from purrrfect.commands.flow_runs import flow_run_app
+from purrrfect.commands.flow_runs.main import flow_run_app
 from purrrfect.commands.logs import logs_app
 from purrrfect.configs import OutputEnum
 

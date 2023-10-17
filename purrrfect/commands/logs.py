@@ -5,11 +5,11 @@ from typing import List, Optional
 import pydantic
 import typer
 from prefect.server.schemas.filters import LogFilter, LogFilterFlowRunId
-from prefect.server.schemas.states import TERMINAL_STATES
+from prefect.server.schemas.states import TERMINAL_STATES, StateType
 
 from purrrfect.commands import CONFIG
 from purrrfect.commands.config import FormatOptions
-from purrrfect.commands.flow_runs import get_flow_run
+from purrrfect.commands.flow_runs.main import get_flow_run
 from purrrfect.prefect_api import prefect_client
 from purrrfect.printer import console
 from purrrfect.typer_utils import AsyncTyper
@@ -88,8 +88,10 @@ LOG_PRINTER_LOOKUP = {
 }
 
 
-async def tail_logs(flow_run_id, output_format: FormatOptions = "rich"):
-    async for logs in stream_flow_logs(flow_run_id, interval=1):
+async def tail_logs(
+    flow_run_id, output_format: FormatOptions = "plain", interval: int = 5
+):
+    async for logs in stream_flow_logs(flow_run_id, interval=interval):
         LOG_PRINTER_LOOKUP[output_format](logs)
 
 
@@ -105,4 +107,4 @@ async def tail_cmd(
     if flow_run_id is None and flow_run_name is None:
         flow_run_id = await get_flow_run()
 
-    tail_logs(flow_run_id, output_format, interval=interval)
+    await tail_logs(flow_run_id, output_format, interval=interval)

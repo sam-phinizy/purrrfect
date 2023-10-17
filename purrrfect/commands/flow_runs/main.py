@@ -318,5 +318,18 @@ async def list_flow_runs_cmd(
     )
 
 
+@flow_run_app.async_command("pick")
+async def pick_flow_run_cmd():
+    from purrrfect.commands.flow_runs.widgets import TableApp
+
+    flow_runs = await prefect_client.read_flow_runs()
+    flow_run_dict = [flow_run.dict() for flow_run in flow_runs]
+
+    headers = list(flow_run_dict[0].keys())
+    rows = [list(flow_run.values()) for flow_run in flow_run_dict]
+    test = await TableApp([headers] + rows).run_async()
+    print(test())
+
+
 if __name__ == "__main__":
     flow_run_app()

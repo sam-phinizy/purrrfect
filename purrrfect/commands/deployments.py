@@ -15,6 +15,7 @@ import functools
 
 deployments_app = AsyncTyper()
 
+
 async def get_deployment(prompt_text: Optional[str] = None):
     deployments = await prefect_client.read_deployments()
 
@@ -49,7 +50,6 @@ async def run_deployment_cmd(deployment_id: Optional[str] = typer.Option(None)):
 
     console.print(f"Deployment run.\n- (T)ail logs\n- (O)pen in browser.\n- (Q)uit")
     choice = Prompt.ask("Choose one:", choices=["T", "O", "Q"])
-
     # TODO: Refactor this into a dictionary
 
     if choice == "T":
